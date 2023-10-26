@@ -16,6 +16,21 @@ data "template_file" "myapp" {
   }
 }
 
+#data for backend
+data "template_file" "backend" {
+  template = file("./templates/ecs/backend.json.tpl")
+
+  vars = {
+    backend_image      = var.backend_image
+    backend_port       = var.backend_port
+    backend_cpu    = var.backend_cpu
+    backend_memory = var.backend_memory
+    aws_region     = var.aws_region
+  }
+}
+
+
+
 resource "aws_ecs_task_definition" "app" {
   family                   = var.aws_ecs_task_definition_family#"myapp-task"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
@@ -26,6 +41,18 @@ resource "aws_ecs_task_definition" "app" {
   container_definitions    = data.template_file.myapp.rendered
 }
 
+# for backend
+resource "aws_ecs_task_definition" "backend" {
+  family                   = var.aws_ecs_backend_task_definition_family#"backend-task"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  network_mode             = var.aws_ecs_task_definition_network_mode #"awsvpc"
+  requires_compatibilities = [ var.aws_ecs_task_definition_requires_compatibilities ]#["FARGATE"]
+  cpu                      = var.backend_cpu
+  memory                   = var.backend_memory
+  container_definitions    = data.template_file.backend.rendered
+}
+
+
 resource "aws_ecs_service" "main" {
   name            = var.aws_ecs_service_name#"myapp-service"
   cluster         = aws_ecs_cluster.main.id
@@ -33,16 +60,43 @@ resource "aws_ecs_service" "main" {
   desired_count   = var.app_count
   launch_type     = var.aws_ecs_service_launch_type #"FARGATE"
 
+
   network_configuration {
     security_groups  = [aws_security_group.ecs_tasks.id]
     subnets          = aws_subnet.public.*.id
     assign_public_ip = true
   }
 
+
   load_balancer {
     target_group_arn = aws_alb_target_group.app.id
     container_name   = var.load_balancer_container_name#"myapp"
     container_port   = var.app_port
+  }
+
+  depends_on = [aws_alb_listener.front_end, aws_iam_role_policy_attachment.ecs_task_execution_role]
+}
+
+#for backend
+resource "aws_ecs_service" "backend" {
+  name            = var.aws_ecs_backend_service_name#"myapp-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.backend.arn
+  desired_count   = var.backend_count
+  launch_type     = var.aws_ecs_service_launch_type #"FARGATE"
+
+
+  network_configuration {
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    subnets          = aws_subnet.public.*.id
+    assign_public_ip = true
+  }
+
+
+  load_balancer {
+    target_group_arn = aws_alb_target_group.backend.id
+    container_name   = var.load_balancer_backend_container_name#"backend"
+    container_port   = var.backend_port
   }
 
   depends_on = [aws_alb_listener.front_end, aws_iam_role_policy_attachment.ecs_task_execution_role]
