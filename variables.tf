@@ -11,11 +11,29 @@ variable "aws_target_name" {
   description = "name of target group"
   default = "myapp-target-group"
 }
+
+#for backend
+variable "aws_backend_target_name" {
+  description = "name of target group"
+  default = "backend-target-group"
+}
+
 variable "target_app_portocol" {
   description = "name of target protocol"
   default = "HTTP"
 }
+
+#for backend
+variable "target_backend_portocol" {
+  description = "name of target protocol"
+  default = "HTTP"
+}
 variable "app_target_type" {
+  description = "name of target type"
+  default = "ip"
+}
+# for backend
+variable "backend_target_type" {
   description = "name of target type"
   default = "ip"
 }
@@ -35,6 +53,10 @@ variable "aws_ecs_cluster_name" {
 variable "aws_ecs_task_definition_family" {
   default = "myapp-task"
 }
+#for backend 
+variable "aws_ecs_backend_task_definition_family" {
+  default = "backend-task"
+}
 variable "aws_ecs_task_definition_network_mode" {
   default = "awsvpc"  
 }
@@ -50,8 +72,17 @@ variable "load_balancer_container_name" {
   default = "myapp"
 }
 
+# for backend
+variable "load_balancer_backend_container_name" {
+  default = "backend"
+}
 variable "aws_ecs_service_name" {
   default = "myapp-service"
+}
+
+# for backend
+variable "aws_ecs_backend_service_name" {
+  default = "backend-service"
 }
 variable "aws_security_group_name" {
   default =  "myapp-load-balancer-security-group"
@@ -64,9 +95,23 @@ variable "aws_security_group_ecs_task_name" {
 variable "aws_cloudwatch_log_stream_name" {
   default = "my-log-stream"
 }
+#for backend
+
+variable "aws_cloudwatch_backend_log_stream_name" {
+  default = "backend"
+}
+
+
 variable "aws_cloudwatch_log_group_name" {
   default = "/ecs/myapp"
 }
+
+#for backend
+
+variable "aws_cloudwatch_backend_log_group_name" {
+  default = "/ecs/backend"
+}
+
 variable "aws_cloudwatch_log_group_tag_name" {
   default = "cb-log-group"
 }
@@ -92,10 +137,23 @@ variable "az_count" {
 
 variable "app_image" {
   description = "Docker image to run in the ECS cluster"
-  default     = "your_ecr_image_url"
+  default     = "446712091027.dkr.ecr.ap-southeast-1.amazonaws.com/web:est-app"
+}
+# for Backend Service and backend task def
+
+variable "backend_image" {
+  description = "Docker image to run in the ECS cluster"
+  default     = "446712091027.dkr.ecr.ap-southeast-1.amazonaws.com/web:est-app"
 }
 
+
 variable "app_port" {
+  description = "Port exposed by the docker image to redirect traffic to"
+  default     = 3000
+}
+
+# for backend
+variable "backend_port" {
   description = "Port exposed by the docker image to redirect traffic to"
   default     = 80
 }
@@ -106,7 +164,11 @@ variable "app_port2" {
 
 variable "app_count" {
   description = "Number of docker containers to run"
-  default     = 3
+  default     = 1
+}
+variable "backend_count" {
+  description = "Number of docker containers to run"
+  default     = 1
 }
 
 variable "health_check_path" {
@@ -136,7 +198,17 @@ variable "fargate_cpu" {
   default     = "1024"
 }
 
+# for backend 
+variable "backend_cpu" {
+  description = "Fargate instance CPU units to provision (1 vCPU = 1024 CPU units)"
+  default     = "1024"
+}
 variable "fargate_memory" {
+  description = "Fargate instance memory to provision (in MiB)"
+  default     = "2048"
+}
+
+variable "backend_memory" {
   description = "Fargate instance memory to provision (in MiB)"
   default     = "2048"
 }
