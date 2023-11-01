@@ -1,4 +1,4 @@
-### Deploy Frontend and Backend on  ECS Fargate using terraform ``
+### Deploy Frontend and Backend on  ECS Fargate using terraform
 
 ### Requirement installation
 `` 1. install terraform and aws-cli `` </br>
